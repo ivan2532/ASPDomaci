@@ -196,6 +196,48 @@ void DeleteGraph()
 	PrintSuccess("Graf uspesno obrisan!\n\n");
 }
 
+void FindKMostSimilar()
+{
+	PrintMenuHeader("\nNALAZENJE K NAJSLICNIJIH CVOROVA\n");
+
+	if (!GraphLoadedCheck())
+		return;
+
+	std::cout
+		<< "Unesite ime cvora: ";
+	std::string inputVertex;
+	std::cin >> inputVertex;
+
+	std::cout
+		<< "Unesite K: ";
+	int inputK;
+	std::cin >> inputK;
+	if (std::cin.fail())
+	{
+		PrintError("Unos K mora biti nenegativan ceo broj!\n\n");
+		std::cin.clear();
+		std::cin.ignore(256, '\n');
+		return;
+	}
+
+	int operationResult = graph.FindKMostSimilar(inputVertex, inputK);
+
+	std::stringstream sstream;
+	if (operationResult == -1)
+	{
+		PrintError("Unos K mora biti nenegativan ceo broj!\n\n");
+	}
+	else if (operationResult == -2)
+	{
+		sstream << "Cvor \"" << inputVertex << "\" ne postoji u grafu!\n\n";
+		PrintError(sstream.str());
+	}
+	else if (operationResult == 0)
+	{
+		PrintSuccess("Operacija uspesna!\n\n");
+	}
+}
+
 void MainMenu()
 {
 	PrintMenuHeader("GLAVNI MENI\n");
@@ -207,7 +249,8 @@ void MainMenu()
 		<< "5. Ukloni granu iz grafa\n"
 		<< "6. Ispisi graf\n"
 		<< "7. Obrisi graf iz memorije\n"
-		<< "8. Kraj rada\n";
+		<< "8. Pronadji K najslicnijih cvorova datom cvoru\n"
+		<< "11. Kraj rada\n";
 
 	int input;
 	std::cout << "Unesite broj operacije: ";
@@ -244,6 +287,9 @@ void MainMenu()
 		DeleteGraph();
 		break;
 	case 8:
+		FindKMostSimilar();
+		break;
+	case 11:
 		exit(0);
 		break;
 	default:

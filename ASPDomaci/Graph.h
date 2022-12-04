@@ -20,6 +20,8 @@ public:
 
 	int AddEdge(const std::string& from, const std::string& to, float weight);
 	int RemoveEdge(const std::string& from, const std::string& to);
+
+	int FindKMostSimilar(const std::string& name, int k) const;
 	
 	friend std::ostream& operator<<(std::ostream& ostream, const Graph& rhs);
 

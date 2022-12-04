@@ -269,6 +269,56 @@ int Graph::RemoveEdge(const std::string& from, const std::string& to)
 	}
 }
 
+int Graph::FindKMostSimilar(const std::string& name, int k) const
+{
+	if (k < 0)
+		return -1;
+	if (k == 0)
+		return 0;
+
+	int targetIndex = GetVertexIndexByName(name);
+	if (targetIndex < 0)
+	{
+		return -2;
+	}
+
+	struct IndexWeightPair
+	{
+		int index;
+		float weight;
+	};
+
+	IndexWeightPair* weights = new IndexWeightPair[m_N];
+	for (int i = 0; i < m_N; i++)
+	{
+		weights[i] = { i, m_Adjacency[i][targetIndex] };
+	}
+
+	for (int i = 0; i < m_N - 1; i++)
+	{
+		for (int j = 0; j < m_N - i - 1; j++)
+		{
+			if (weights[j].weight < weights[j + 1].weight)
+				std::swap(weights[j], weights[j + 1]);
+		}
+	}
+
+	std::stringstream sstream;
+	for (int i = 0; i < std::min(m_N, k); i++)
+	{
+		IndexWeightPair it = weights[i];
+		if (it.weight > 0)
+		{
+			sstream.str(std::string());
+			sstream << m_Vertices[it.index] << " (" << it.weight << ")\n";
+			Print(sstream.str(), LIGHT_ORANGE_TXT);
+		}
+	}
+
+	delete[] weights;
+	return 0;
+}
+
 int Graph::GetVertexIndexByName(const std::string& name) const
 {
 	for (int i = 0; i < m_N; i++)
@@ -282,13 +332,19 @@ int Graph::GetVertexIndexByName(const std::string& name) const
 
 void Graph::FreeMemory()
 {
-	for (int i = 0; i < m_N; i++)
+	if (m_Adjacency != nullptr)
 	{
-		delete[] m_Adjacency[i];
+		for (int i = 0; i < m_N; i++)
+		{
+			delete[] m_Adjacency[i];
+		}
 	}
 
 	delete[] m_Adjacency;
 	delete[] m_Vertices;
+
+	m_Adjacency = nullptr;
+	m_Vertices = nullptr;
 
 	m_N = -1;
 }
