@@ -1,0 +1,5 @@
+3
+2
+CvorA CvorB CvorC
+CvorA CvorB 0.25
+CvorB CvorC 0.5

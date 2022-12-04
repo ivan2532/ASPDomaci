@@ -8,6 +8,7 @@
 #define RED_TXT "31"
 #define GREEN_TXT "32"
 #define ORANGE_TXT "33"
+#define LIGHT_ORANGE_TXT "93"
 #define BLUE_TXT "36"
 #define WHITE_TXT "37"
 #define RESET "\033[m"
