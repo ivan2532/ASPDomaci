@@ -238,6 +238,68 @@ void FindKMostSimilar()
 	}
 }
 
+void FindShortestPath()
+{
+	PrintMenuHeader("\nNALAZENJE NAJKRACEG PUTA\n");
+
+	if (!GraphLoadedCheck())
+		return;
+
+	std::cout
+		<< "Unesite ime prvog cvora: ";
+	std::string inputFrom;
+	std::cin >> inputFrom;
+
+	std::cout
+		<< "Unesite ime drugog cvora: ";
+	std::string inputTo;
+	std::cin >> inputTo;
+
+	int operationResult = graph.DijkstraShortestPath(inputFrom, inputTo);
+
+	std::stringstream sstream;
+	if (operationResult == -1)
+	{
+		sstream << "Neki od unetih cvorova (\"" << inputFrom << "\" i " << "\"" << inputTo << "\") ne postoji u grafu!\n\n";
+		PrintError(sstream.str());
+	}
+	else if (operationResult == -2)
+	{
+		sstream << "Ne postoji put izmedju cvorova \"" << inputFrom << "\" i " << "\"" << inputTo << "\"!\n\n";
+		PrintError(sstream.str());
+	}
+	else if (operationResult == 0)
+	{
+		PrintSuccess("Operacija uspesna!\n\n");
+	}
+}
+
+void FindStronglyConnected()
+{
+	PrintMenuHeader("\nNALAZENJE JAKO POVEZANIH CVOROVA\n");
+
+	if (!GraphLoadedCheck())
+		return;
+
+	std::cout
+		<< "Unesite ime cvora: ";
+	std::string input;
+	std::cin >> input;
+
+	int operationResult = graph.FindStronglyConnected(input);
+
+	std::stringstream sstream;
+	if (operationResult == -1)
+	{
+		sstream << "Cvor \"" << input << "\" ne postoji u grafu!\n\n";
+		PrintError(sstream.str());
+	}
+	else if (operationResult == 0)
+	{
+		PrintSuccess("Operacija uspesna!\n\n");
+	}
+}
+
 void MainMenu()
 {
 	PrintMenuHeader("GLAVNI MENI\n");
@@ -250,6 +312,8 @@ void MainMenu()
 		<< "6. Ispisi graf\n"
 		<< "7. Obrisi graf iz memorije\n"
 		<< "8. Pronadji K najslicnijih cvorova datom cvoru\n"
+		<< "9. Pronadji najkraci put izmedju datih cvorova\n"
+		<< "10. Pronadji sve cvorove koji su jako povezani sa datim cvorom\n"
 		<< "11. Kraj rada\n";
 
 	int input;
@@ -288,6 +352,12 @@ void MainMenu()
 		break;
 	case 8:
 		FindKMostSimilar();
+		break;
+	case 9:
+		FindShortestPath();
+		break;
+	case 10:
+		FindStronglyConnected();
 		break;
 	case 11:
 		exit(0);

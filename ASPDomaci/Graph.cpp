@@ -178,10 +178,7 @@ int Graph::AddVertex(const std::string& name)
 int Graph::RemoveVertex(const std::string& name)
 {
 	int removeIndex = GetVertexIndexByName(name);
-	if (removeIndex < 0)
-	{
-		return -1;
-	}
+	if (removeIndex < 0) return -1;
 
 	if (m_N == 1)
 	{
@@ -223,18 +220,11 @@ int Graph::RemoveVertex(const std::string& name)
 
 int Graph::AddEdge(const std::string& from, const std::string& to, float weight)
 {
-	if (weight < 0 || weight > 1)
-	{
-		return -1;
-	}
+	if (weight < 0 || weight > 1) return -1;
 
 	int fromIndex = GetVertexIndexByName(from);
 	int toIndex = GetVertexIndexByName(to);
-
-	if (fromIndex < 0 || toIndex < 0)
-	{
-		return -2;
-	}
+	if (fromIndex < 0 || toIndex < 0) return -2;
 
 	if (m_Adjacency[fromIndex][toIndex] < 0)
 	{
@@ -252,11 +242,7 @@ int Graph::RemoveEdge(const std::string& from, const std::string& to)
 {
 	int fromIndex = GetVertexIndexByName(from);
 	int toIndex = GetVertexIndexByName(to);
-
-	if (fromIndex < 0 || toIndex < 0)
-	{
-		return -1;
-	}
+	if (fromIndex < 0 || toIndex < 0) return -1;
 
 	if (m_Adjacency[fromIndex][toIndex] < 0)
 	{
@@ -271,10 +257,8 @@ int Graph::RemoveEdge(const std::string& from, const std::string& to)
 
 int Graph::FindKMostSimilar(const std::string& name, int k) const
 {
-	if (k < 0)
-		return -1;
-	if (k == 0)
-		return 0;
+	if (k < 0) return -1;
+	if (k == 0) return 0;
 
 	int targetIndex = GetVertexIndexByName(name);
 	if (targetIndex < 0)
@@ -319,6 +303,67 @@ int Graph::FindKMostSimilar(const std::string& name, int k) const
 	return 0;
 }
 
+int Graph::DijkstraShortestPath(const std::string& from, const std::string& to, bool print) const
+{
+	int fromIndex = GetVertexIndexByName(from);
+	int toIndex = GetVertexIndexByName(to);
+	if (fromIndex < 0 || toIndex < 0) return -1;
+
+	return DijkstraShortestPath(fromIndex, toIndex, print);
+}
+
+int Graph::FindStronglyConnected(const std::string& name) const
+{
+	int targetIndex = GetVertexIndexByName(name);
+	if(targetIndex < 0) return -1;
+
+	struct ListNode
+	{
+		int vertex;
+		ListNode* next = nullptr;
+	};
+	ListNode* vertexList = new ListNode{ targetIndex };
+
+	for (int i = 0; i < m_N; i++)
+	{
+		if (i == targetIndex) continue;
+
+		// Check if is connected to every node so far
+		bool stronglyConnected = true;
+		for (auto it = vertexList; it != nullptr; it = it->next)
+		{
+			if (DijkstraShortestPath(it->vertex, i) < 0 || DijkstraShortestPath(i, it->vertex) < 0)
+			{
+				stronglyConnected = false;
+				break;
+			}
+		}
+
+		// If check passed, add it to the list and print
+		if (stronglyConnected)
+		{
+			auto newNode = new ListNode{ i, vertexList };
+			vertexList = newNode;
+
+			std::stringstream sstream;
+			sstream << m_Vertices[i] << "\n";
+			Print(sstream.str());
+		}
+	}
+
+	// Deallocate list
+	ListNode* prev = nullptr;
+	ListNode* it = vertexList;
+	while (it != nullptr)
+	{
+		prev = it;
+		it = it->next;
+		delete prev;
+	}
+
+	return 0;
+}
+
 int Graph::GetVertexIndexByName(const std::string& name) const
 {
 	for (int i = 0; i < m_N; i++)
@@ -328,6 +373,141 @@ int Graph::GetVertexIndexByName(const std::string& name) const
 	}
 
 	return -1;
+}
+
+int Graph::DijkstraShortestPath(int fromIndex, int toIndex, bool print) const
+{
+	int operationResult = 0;
+	if (fromIndex < 0 || fromIndex >= m_N || toIndex < 0 || toIndex >= m_N)
+	{
+		operationResult = -1;
+		return operationResult;
+	}
+
+	bool visitedEveryNode = false;
+	bool* visited = new bool[m_N];
+	for (int i = 0; i < m_N; i++)
+	{
+		visited[i] = false;
+	}
+
+	struct VertexEntry
+	{
+		float shortestDistance = -1;
+		int prev = -1;
+	};
+	VertexEntry* vertexTable = new VertexEntry[m_N];
+	for (int i = 0; i < m_N; i++)
+	{
+		vertexTable[i] = { i == fromIndex ? 0.0f : -1.0f };
+	}
+
+	while (!visitedEveryNode)
+	{
+		// Find an unvisited node with the smallest distance
+		float minDistance = -1;
+		int curIndex = -1;
+		for (int i = 0; i < m_N; i++)
+		{
+			if (!visited[i])
+			{
+				if (minDistance == -1 || (vertexTable[i].shortestDistance >= 0 && vertexTable[i].shortestDistance < minDistance))
+				{
+					curIndex = i;
+					minDistance = vertexTable[i].shortestDistance;
+				}
+			}
+		}
+		visited[curIndex] = true;
+
+		// Iterate through all its' neighours
+		for (int i = 0; i < m_N; i++)
+		{
+			if (m_Adjacency[curIndex][i] >= 0 && !visited[i])
+			{
+				float newDistance = vertexTable[curIndex].shortestDistance + m_Adjacency[curIndex][i];
+				if (vertexTable[i].shortestDistance < 0 || newDistance < vertexTable[i].shortestDistance)
+				{
+					vertexTable[i].shortestDistance = newDistance;
+					vertexTable[i].prev = curIndex;
+				}
+			}
+		}
+
+		// Check if we've visited all nodes
+		for (int i = 0; i < m_N; i++)
+		{
+			if (!visited[i])
+				break;
+
+			if (i == m_N - 1)
+				visitedEveryNode = true;
+		}
+	}
+
+	struct StackNode
+	{
+		int vertex;
+		StackNode* next;
+	};
+	StackNode* stack = nullptr;
+
+	// Find path if it exists
+	if (operationResult == 0)
+	{
+		int it = toIndex;
+		while (true)
+		{
+			auto newNode = new StackNode{ it, nullptr };
+			if (stack != nullptr)
+			{
+				newNode->next = stack;
+			}
+			stack = newNode;
+
+			if (it == fromIndex)
+			{
+				break;
+			}
+
+			it = vertexTable[it].prev;
+			if (it == -1)
+			{
+				operationResult = -2;
+				break;
+			}
+		}
+	}
+
+	// Print if successful, deallocate stack
+	std::stringstream sstream;
+	while (stack != nullptr)
+	{
+		int curIndex = stack->vertex;
+		int nextIndex = -1;
+		if (stack->next != nullptr)
+			nextIndex = stack->next->vertex;
+
+		if (print && operationResult == 0)
+		{
+			sstream.str(std::string());
+			sstream << m_Vertices[curIndex];
+
+			if (nextIndex >= 0)
+				sstream << "-(" << m_Adjacency[curIndex][nextIndex] << ")->";
+
+			Print(sstream.str(), LIGHT_ORANGE_TXT);
+			if (nextIndex < 0) Print("\n");
+		}
+
+		auto nodeToDelete = stack;
+		stack = stack->next;
+		delete nodeToDelete;
+	}
+
+	delete[] vertexTable;
+	delete[] visited;
+	return operationResult;
 }
 
 void Graph::FreeMemory()
